@@ -148,14 +148,15 @@
         <div class="section-title">Projects</div>
         
         <div id="content">
-            <div class="loading">正在连接 Gitee...</div>
+            <div class="loading">正在连接...</div>
         </div>
         
         <div class="footer" id="footer"></div>
     </div>
 
     <script>
-        const GITEE_URL = 'https://gitee.com/wawaseer/twinkle/raw/master/url.json';
+        // 同域相对路径，无跨域问题
+        const DATA_URL = 'url.json';
         
         const projects = [
             { name: '昌邑学校', path: '/changyi/', icon: '🏫', desc: '学习成长记录，包含暑假作业等内容', tag: 'Education' }
@@ -167,7 +168,7 @@
             const footer = document.getElementById('footer');
             
             try {
-                const res = await fetch(GITEE_URL + '?t=' + Date.now());
+                const res = await fetch(DATA_URL + '?t=' + Date.now());
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 
                 const data = await res.json();
