@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Project Hub</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 40px 20px;
+        }
+        
+        .container { max-width: 600px; margin: 0 auto; }
+        
+        .hero {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+        
+        .status {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 20px;
+            padding: 8px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: #00d4ff;
+        }
+        
+        .status::before {
+            content: '';
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        .section-title {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px 0;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .error {
+            text-align: center;
+            padding: 60px 0;
+            color: #ff6b6b;
+        }
+        
+        .error button {
+            margin-top: 20px;
+            padding: 10px 30px;
+            background: rgba(255,100,100,0.1);
+            border: 1px solid rgba(255,100,100,0.3);
+            color: #ff6b6b;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .card {
+            display: block;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .card:active {
+            background: rgba(255,255,255,0.1);
+            transform: scale(0.98);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .icon { font-size: 1.5rem; }
+        
+        .name { font-size: 1.1rem; color: #fff; font-weight: 500; }
+        
+        .desc {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.5;
+        }
+        
+        .tag {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 12px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #00d4ff;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="title">Project Hub</div>
+            <div class="status" id="status">获取地址中...</div>
+        </div>
+        
+        <div class="section-title">Projects</div>
+        
+        <div id="content">
+            <div class="loading">正在连接 Gitee...</div>
+        </div>
+        
+        <div class="footer" id="footer"></div>
+    </div>
+
+    <script>
+        const GITEE_URL = 'https://gitee.com/wawaseer/twinkle/raw/master/url.json';
+        
+        const projects = [
+            { name: '昌邑学校', path: '/changyi/', icon: '🏫', desc: '学习成长记录，包含暑假作业等内容', tag: 'Education' }
+        ];
+        
+        async function init() {
+            const content = document.getElementById('content');
+            const status = document.getElementById('status');
+            const footer = document.getElementById('footer');
+            
+            try {
+                const res = await fetch(GITEE_URL + '?t=' + Date.now());
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                
+                const data = await res.json();
+                if (!data.mid) throw new Error('缺少 mid 字段');
+                
+                const mid = data.mid;
+                let baseUrl;
+                
+                if (mid.startsWith('--') && mid.endsWith('++')) {
+                    baseUrl = mid.replace('--', 'https://').replace('++', '.trycloudflare.com');
+                } else {
+                    baseUrl = 'https://' + mid + '.trycloudflare.com';
+                }
+                
+                status.textContent = '服务在线';
+                status.style.color = '#00ff88';
+                status.style.borderColor = 'rgba(0,255,136,0.3)';
+                status.style.background = 'rgba(0,255,136,0.1)';
+                
+                content.innerHTML = '';
+                projects.forEach(p => {
+                    const a = document.createElement('a');
+                    a.className = 'card';
+                    a.href = baseUrl + p.path;
+                    a.innerHTML = `
+                        <div class="card-header">
+                            <span class="icon">${p.icon}</span>
+                            <span class="name">${p.name}</span>
+                        </div>
+                        <div class="desc">${p.desc}</div>
+                        <span class="tag">${p.tag}</span>
+                    `;
+                    content.appendChild(a);
+                });
+                
+                if (data.timestamp) {
+                    footer.textContent = '更新于 ' + data.timestamp;
+                }
+                
+            } catch (e) {
+                status.textContent = '获取失败';
+                status.style.color = '#ff6b6b';
+                status.style.borderColor = 'rgba(255,100,100,0.3)';
+                status.style.background = 'rgba(255,100,100,0.1)';
+                
+                content.innerHTML = `
+                    <div class="error">
+                        <div>获取失败: ${e.message}</div>
+                        <button onclick="location.reload()">重试</button>
+                    </div>
+                `;
+            }
+        }
+        
+        init();
+    </script>
+</body>
+</html>
