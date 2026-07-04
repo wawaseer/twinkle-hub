@@ -90,6 +90,12 @@
     <script>
         const DATA_URL = 'url.json';
         
+        // 获取 URL 参数
+        function getParam(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.get(name);
+        }
+        
         async function init() {
             try {
                 const res = await fetch(DATA_URL + '?t=' + Date.now());
@@ -99,17 +105,21 @@
                 if (!data.mid) throw new Error('缺少 mid 字段');
                 
                 const mid = data.mid;
-                let targetUrl;
+                let baseUrl;
                 
                 if (mid.startsWith('--') && mid.endsWith('++')) {
-                    targetUrl = mid.replace('--', 'https://').replace('++', '.trycloudflare.com');
+                    baseUrl = mid.replace('--', 'https://').replace('++', '.trycloudflare.com');
                 } else {
-                    targetUrl = 'https://' + mid + '.trycloudflare.com';
+                    baseUrl = 'https://' + mid + '.trycloudflare.com';
                 }
+                
+                // 获取路径参数，默认根目录
+                const path = getParam('path') || '';
+                const targetUrl = baseUrl + '/' + path;
                 
                 // 加载 iframe
                 const frame = document.getElementById('frame');
-                frame.src = targetUrl + '/';
+                frame.src = targetUrl;
                 frame.classList.add('show');
                 
                 // 隐藏 loading
